@@ -2,12 +2,13 @@ import time
 from datetime import datetime
 from loguru import logger
 from models import session, User
+from components.faker import bit
 from sqlalchemy.exc import IntegrityError
 from components.scrapper import MyFollowersScrapper
 from components.scroll import ShowProfileList
 
 
-MY_PROFILE = "instalceu"
+MY_PROFILE = "ceuitalian"
 URL = "https://www.instagram.com/"
 
 
@@ -20,7 +21,7 @@ class MyProfile:
     def update_my_followers(self, my_profile=MY_PROFILE):
         logger.warning(f"START to update my followers")
         self.browser.get(f"{URL}{my_profile}/") 
-        time.sleep(self.sleep_time*2)
+        time.sleep(self.sleep_time+bit())
         
         ShowProfileList(self.browser).show_followers()
         profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()
@@ -46,7 +47,7 @@ class MyProfile:
     def update_my_following(self):
         logger.warning(f"START update following")
         self.browser.get(f"{URL}{MY_PROFILE}/") 
-        time.sleep(self.sleep_time*2)
+        time.sleep(self.sleep_time+bit())
         
         ShowProfileList(self.browser).show_following()
         profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()

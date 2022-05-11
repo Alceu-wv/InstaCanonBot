@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 from loguru import logger
 from models import session, User
+from components.faker import bit
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -18,12 +19,13 @@ class Follow:
             
     def _follow_user(self, profile=PROFILE):
         self.browser.get(f"{URL}{profile}/") 
-        time.sleep(self.sleep_time*2)
+        time.sleep(self.sleep_time+bit())
         
         try:    
-            follow_button = WebDriverWait(self.browser, 5).until(
+            follow_button = WebDriverWait(self.browser, 5+bit()).until(
                 EC.presence_of_element_located((By.XPATH, "// div[contains(text(),\'Seguir')]"))
                 )
+            time.sleep(bit())
             follow_button.click()
             logger.info(f"Just followig {profile}!!!")
         except TimeoutException:
@@ -40,7 +42,6 @@ class Follow:
         users = session.query(User).filter(or_(User.i_follow==None, User.i_follow==False)).all()[:9]
         for user in users:
             self._follow_user(user.url_name)
-            time.sleep(self.sleep_time)
             self._update_followed_user(user)
         session.close()
         logger.warning(f"FINISH follow new profiles")

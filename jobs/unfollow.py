@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 from loguru import logger
 from models import session, User
+from components.faker import bit
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -25,14 +26,16 @@ class Unfollow:
     
     def _unfollow_user(self, profile=PROFILE):
         self.browser.get(f"{URL}{profile}/") 
-        time.sleep(self.sleep_time*2)
+        time.sleep(self.sleep_time+bit())
         try:
-            unfollow_button = WebDriverWait(self.browser, 5).until(
+            unfollow_button = WebDriverWait(self.browser, 5+bit()).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, '[class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]'))
             )
+            time.sleep(bit())
             unfollow_button.click()
             modal = self.browser.find_element_by_class_name('piCib')
             confirmation_button = modal.find_element_by_tag_name('button')
+            time.sleep(bit()/2)
             confirmation_button.click()
             logger.info(f"Just stop followig {profile}!!!")
         except TimeoutException:
@@ -44,7 +47,6 @@ class Unfollow:
         users = session.query(User).filter(or_(User.follow_me==None, User.follow_me==False)).all()[:9]
         for user in users:
             self._unfollow_user(user.url_name)
-            time.sleep(self.sleep_time)
             self._update_unfollowed_user(user)
         session.close()
         logger.warning(f">> FINISH to unfollow who dont follow back")

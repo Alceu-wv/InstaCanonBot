@@ -3,6 +3,7 @@ from datetime import datetime
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from models import session, User
+from components.faker import bit
 from components.scrapper import MyFollowersScrapper
 from components.scroll import ShowProfileList
 
@@ -19,7 +20,7 @@ class ProfileScrapper:
     def get_another_profile_followers(self, another_profile=PROFILE):
         logger.warning(f"START to get another profile followers")
         self.browser.get(f"{URL}{another_profile}/") 
-        time.sleep(self.sleep_time*2)
+        time.sleep(self.sleep_time+bit())
         
         ShowProfileList(self.browser).show_followers()
         profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()

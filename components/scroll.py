@@ -1,10 +1,10 @@
 import time
 from loguru import logger
+from components.faker import bit
 
 class ShowProfileList():
-    def __init__(self, browser, insistence=10, sleep_time=0.5):
+    def __init__(self, browser, insistence=10):
         self.browser = browser
-        self.sleep_time = sleep_time
         self.insistence = insistence
         
     def _scroll_profiles(self):
@@ -12,7 +12,7 @@ class ShowProfileList():
         while repeated != self.insistence:
             inicial_len = self._profiles_len()
             self.browser.execute_script("document.getElementsByClassName('isgrP')[0].scrollTop=document.getElementsByClassName('isgrP')[0].scrollTop+document.getElementsByClassName('isgrP')[0].scrollHeight")
-            time.sleep(self.sleep_time)
+            time.sleep(0.3 + bit())
             final_len = self._profiles_len()
             if final_len == inicial_len:
                 repeated+=1
@@ -27,18 +27,20 @@ class ShowProfileList():
     
     def _click_followers(self):
         self.browser.find_element_by_partial_link_text("seguid").click()
-        time.sleep(self.sleep_time)
 
     def _click_following(self):
         self.browser.find_element_by_partial_link_text("seguindo").click()
-        time.sleep(self.sleep_time)
     
     def show_followers(self):
+        time.sleep(bit())
         self._click_followers()
+        time.sleep(bit())
         self._scroll_profiles()
         
     def show_following(self):
+        time.sleep(bit())
         self._click_following()
+        time.sleep(bit())
         self._scroll_profiles()
         
     

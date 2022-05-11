@@ -2,9 +2,8 @@ from loguru import logger
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 
 class ProfileScrapper():
-    def __init__(self, browser, sleep_time=1):
+    def __init__(self, browser):
         self.browser = browser
-        self.sleep_time = sleep_time
         
     def _profile_list(self):
         scroll_element = self.browser.find_element_by_class_name("isgrP")
