@@ -9,9 +9,9 @@ __pycache__/
 # posts
 posts/
 
-# chromedriver
+# webdriver
 *$driver.exe
-
+chromedriver.exe
 
 # Distribution / packaging
 .Python
