@@ -8,7 +8,6 @@ from components.scrapper import MyFollowersScrapper
 from components.scroll import ShowProfileList
 
 
-MY_PROFILE = "ceuitalian"
 URL = "https://www.instagram.com/"
 
 
@@ -17,8 +16,9 @@ class MyProfile:
         self.browser = browser
         self.sleep_time = sleep_time
         self.data = {"updated": 0, "created": 0, "errors":0}
+        # TODO: salvar todal de seguidores e seguindo, logar no final junto com data
         
-    def update_my_followers(self, my_profile=MY_PROFILE):
+    def update_my_followers(self, my_profile):
         logger.warning(f"START to update my followers")
         self.browser.get(f"{URL}{my_profile}/") 
         time.sleep(self.sleep_time+bit())
@@ -44,9 +44,9 @@ class MyProfile:
         logger.warning(f">> DB ERRORS: {self.data['errors']} ")
         session.close()
         
-    def update_my_following(self):
+    def update_my_following(self, profile):
         logger.warning(f"START update following")
-        self.browser.get(f"{URL}{MY_PROFILE}/") 
+        self.browser.get(f"{URL}{profile}/") 
         time.sleep(self.sleep_time+bit())
         
         ShowProfileList(self.browser).show_following()

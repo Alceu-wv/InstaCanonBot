@@ -8,7 +8,6 @@ from components.scrapper import MyFollowersScrapper
 from components.scroll import ShowProfileList
 
 
-PROFILE = "deysesantos73"
 URL = "https://www.instagram.com/"
 
 class ProfileScrapper:
@@ -17,11 +16,12 @@ class ProfileScrapper:
         self.sleep_time = sleep_time
         self.data = {"updated": 0, "created": 0, "errors":0}
         
-    def get_another_profile_followers(self, another_profile=PROFILE):
+    def get_another_profile_followers(self, another_profile):
         logger.warning(f"START to get another profile followers")
         self.browser.get(f"{URL}{another_profile}/") 
         time.sleep(self.sleep_time+bit())
         
+        # TODO: lógica para listas muito grandes
         ShowProfileList(self.browser).show_followers()
         profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()
         
@@ -36,7 +36,7 @@ class ProfileScrapper:
                 session.add(user)
             self._try_to_commit(session, user)
         
-        logger.warning(f">> FINISH to get another profile followers")
+        logger.warning(f"FINISH to get another profile followers")
         logger.warning(f">> UPDATED: {self.data['updated']} ")
         logger.warning(f">> CREATED: {self.data['created']} ")
         logger.warning(f">> DB ERRORS: {self.data['errors']} ")

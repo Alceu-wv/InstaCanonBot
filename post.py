@@ -47,7 +47,7 @@ class TimelinePost:
         pyautogui.write(self.file_manager.get_post_text())
     
     def post(self):
-        self.browser.find_element_by_css_selector('[aria-label="Nova publicação"]').click()
+        self.browser.find_element(By.CSS_SELECTOR, '[aria-label="Nova publicação"]').click()
         self._select_photo()
         self._next()
         self._next()

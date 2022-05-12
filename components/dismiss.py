@@ -28,6 +28,7 @@ class Dismiss:
         except TimeoutException:
             logger.error(f"Could not find pop_up_button from XPATH 1 {XPATH_DISMISS_ACTIVE_NOTIFICATIONS1}")
         
+        time.sleep(bit())
         pop_up_button.click()
         logger.info("Dismiss active notifications")
         

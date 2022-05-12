@@ -1,13 +1,15 @@
 from loguru import logger
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
+from selenium.webdriver.common.by import By
 
 class ProfileScrapper():
     def __init__(self, browser):
         self.browser = browser
-        
+        # TODO: dados
+         
     def _profile_list(self):
-        scroll_element = self.browser.find_element_by_class_name("isgrP")
-        users = scroll_element.find_elements_by_tag_name('li')
+        scroll_element = self.browser.find_element(By.CLASS_NAME, "isgrP")
+        users = scroll_element.find_elements(By.TAG_NAME, 'li')
         return users
     
     def _get_name(self, user):
@@ -25,14 +27,15 @@ class ProfileScrapper():
 class MyFollowersScrapper(ProfileScrapper):
     def _get_name(self, user):
         try:
-            name = user.find_element_by_css_selector('[class="wFPL8 "]').text
+            name = user.find_element(By.CSS_SELECTOR, '[class="_7UhW9   xLCgt      MMzan    _0PwGv              fDxYl     "]').text
         except NoSuchElementException:
-            logger.error(f"Error obtaining name from users list")
+            logger.error(f"Error obtaining name from users scroll list")
             name = "not_found"
+            # TODO: corrigir e salvar erros 
         return name
     
     def _get_url_name(self, user):
-        url_name = user.find_element_by_css_selector('[class="Jv7Aj mArmR MqpiF  "]').text
+        url_name = user.find_element(By.CSS_SELECTOR, '[class="Jv7Aj mArmR MqpiF  "]').text
         return url_name
     
     def get_profiles_info(self):
@@ -48,6 +51,7 @@ class MyFollowersScrapper(ProfileScrapper):
             except StaleElementReferenceException:
                 logger.error("Missing user in scroll list")
                 continue
+                # TODO: corrigir e salvar erros
         return profiles_info
     
 

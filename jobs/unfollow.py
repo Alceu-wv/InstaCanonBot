@@ -33,8 +33,8 @@ class Unfollow:
             )
             time.sleep(bit())
             unfollow_button.click()
-            modal = self.browser.find_element_by_class_name('piCib')
-            confirmation_button = modal.find_element_by_tag_name('button')
+            modal = self.browser.find_element(By.CLASS_NAME, 'piCib')
+            confirmation_button = modal.find_element(By.TAG_NAME, 'button')
             time.sleep(bit()/2)
             confirmation_button.click()
             logger.info(f"Just stop followig {profile}!!!")
@@ -44,7 +44,7 @@ class Unfollow:
         
     def unfollow_who_dont_follow_back(self):
         logger.warning(f"START to unfollow who dont follow back")
-        users = session.query(User).filter(or_(User.follow_me==None, User.follow_me==False)).all()[:9]
+        users = session.query(User).filter(or_(User.follow_me==None, User.follow_me==False)).all()
         for user in users:
             self._unfollow_user(user.url_name)
             self._update_unfollowed_user(user)
