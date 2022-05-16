@@ -2,10 +2,11 @@ import time
 from datetime import datetime
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
-from models import session, User
+from selenium.webdriver.common.by import By
+from models import session, Profile
 from components.faker import bit
-from components.scrapper import MyFollowersScrapper
-from components.scroll import ShowProfileList
+from components.navegation.scrapper import FollowersScrapper
+from components.navegation.scroll import ShowProfileList
 
 
 URL = "https://www.instagram.com/"
@@ -15,32 +16,39 @@ class ProfileScrapper:
         self.browser = browser
         self.sleep_time = sleep_time
         self.data = {"updated": 0, "created": 0, "errors":0}
+        self.followers_data = {"total_followers": 0}
+        self.following_data = {"total_following": 0}
+        
+    def check_total_profile_numbers(self):
+        followers_bar = self.browser.find_element(By.TAG_NAME, "ul").text.split("\n")
+        total_profile_posts = followers_bar[0].split(" ")[0]
+        total_profile_followers = int(followers_bar[1].split(" ")[0].replace('.',""))
+        total_profile_following = int(followers_bar[2].split(" ")[0].replace('.',""))
+        self.followers_data["total_followers"] = total_profile_followers
+        self.following_data["total_following"] = total_profile_following
         
     def get_another_profile_followers(self, another_profile):
         logger.warning(f"START to get another profile followers")
         self.browser.get(f"{URL}{another_profile}/") 
         time.sleep(self.sleep_time+bit())
-        
+        self.check_total_profile_numbers()
         # TODO: lógica para listas muito grandes
-        ShowProfileList(self.browser).show_followers()
-        profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()
+        ShowProfileList(self.browser).show_followers(self.followers_data["total_followers"])
+        profiles_info = FollowersScrapper(self.browser, self.followers_data["total_followers"]).get_profiles_info()
         
-        for profile in profiles_info:
-            user = session.query(User).filter_by(url_name=profile['url_name']).first()
-            if user:
-                user.updated_at = datetime.now()
+        for p in profiles_info:
+            profile = session.query(Profile).filter_by(url_name=p['url_name']).first()
+            if profile:
+                profile.updated_at = datetime.now()
                 self.data["updated"]+=1
             else:
-                user = User(name=profile['name'], url_name=profile['url_name'], i_follow=profile['i_follow'], got_from=another_profile)
+                profile = Profile(name=p['name'], url_name=p['url_name'], i_follow=p['i_follow'], got_from=another_profile)
                 self.data["created"]+=1
-                session.add(user)
-            self._try_to_commit(session, user)
-        
-        logger.warning(f"FINISH to get another profile followers")
-        logger.warning(f">> UPDATED: {self.data['updated']} ")
-        logger.warning(f">> CREATED: {self.data['created']} ")
-        logger.warning(f">> DB ERRORS: {self.data['errors']} ")
+                session.add(profile)
+            self._try_to_commit(session, profile)
+
         session.close()
+        return self.data     
         
     def _try_to_commit(self, session, user):
         try:

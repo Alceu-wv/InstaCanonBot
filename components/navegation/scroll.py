@@ -8,16 +8,20 @@ class ShowProfileList():
         self.browser = browser
         self.insistence = insistence
         
-    def _scroll_profiles(self):
+    def _scroll_profiles(self, total_profiles):
         repeated = 0
-        while repeated != self.insistence:
+        final_len = 0
+        
+        # TODO: remover final_len<100
+        
+        while all([repeated!=self.insistence, final_len!=total_profiles, final_len<10]):
             inicial_len = self._profiles_len()
             self.browser.execute_script("document.getElementsByClassName('isgrP')[0].scrollTop=document.getElementsByClassName('isgrP')[0].scrollTop+document.getElementsByClassName('isgrP')[0].scrollHeight")
             time.sleep(0.3 + bit())
             final_len = self._profiles_len()
             if final_len == inicial_len:
                 repeated+=1
-            logger.info(final_len)
+            logger.info(f"Progress: {final_len}/{total_profiles}")
                 
         logger.info(f"{self.__class__.__name__} >> _scroll_profiles >> Discovered users == {final_len}")
         
@@ -33,17 +37,17 @@ class ShowProfileList():
     def _click_following(self):
         self.browser.find_element(By.PARTIAL_LINK_TEXT, "seguindo").click()
     
-    def show_followers(self):
+    def show_followers(self, total_profiles):
         time.sleep(bit())
         self._click_followers()
         time.sleep(bit())
-        self._scroll_profiles()
+        self._scroll_profiles(total_profiles)
         
-    def show_following(self):
+    def show_following(self, total_profiles):
         time.sleep(bit())
         self._click_following()
         time.sleep(bit())
-        self._scroll_profiles()
+        self._scroll_profiles(total_profiles)
         
     # TODO: lógica para listas vazias
     

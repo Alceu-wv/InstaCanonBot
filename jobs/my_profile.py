@@ -1,74 +1,78 @@
 import time
 from datetime import datetime
 from loguru import logger
-from models import session, User
+from models import session, Profile
 from components.faker import bit
 from sqlalchemy.exc import IntegrityError
-from components.scrapper import MyFollowersScrapper
-from components.scroll import ShowProfileList
+from selenium.webdriver.common.by import By
+from components.navegation.scrapper import FollowersScrapper
+from components.navegation.scroll import ShowProfileList
 
 
 URL = "https://www.instagram.com/"
 
 
-class MyProfile:
     def __init__(self, browser=None, sleep_time=1):
         self.browser = browser
         self.sleep_time = sleep_time
-        self.data = {"updated": 0, "created": 0, "errors":0}
-        # TODO: salvar todal de seguidores e seguindo, logar no final junto com data
+        self.followers_data = {"total_followers": 0, "followers_updated": 0, "followers_created": 0, "followers_errors":0}
+        self.following_data = {"total_following": 0, "following_updated": 0, "following_created": 0, "following_errors":0}
         
-    def update_my_followers(self, my_profile):
+    def check_total_profile_numbers(self):
+        followers_bar = self.browser.find_element(By.TAG_NAME, "ul").text.split("\n")
+        total_profile_posts = followers_bar[0].split(" ")[0]
+        total_profile_followers = int(followers_bar[1].split(" ")[0].replace('.',""))
+        total_profile_following = int(followers_bar[2].split(" ")[0].replace('.',""))
+        self.followers_data["total_followers"] = total_profile_followers
+        self.following_data["total_following"] = total_profile_following
+    
+    def update_my_followers(self, my_url_name):
         logger.warning(f"START to update my followers")
-        self.browser.get(f"{URL}{my_profile}/") 
+        self.browser.get(f"{URL}{my_url_name}/") 
         time.sleep(self.sleep_time+bit())
+        self.check_total_profile_numbers()
         
-        ShowProfileList(self.browser).show_followers()
-        profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()
+        ShowProfileList(self.browser).show_followers(self.followers_data["total_followers"])
+        profiles_info = FollowersScrapper(self.browser, self.followers_data["total_followers"]).get_profiles_info()
         
-        for profile in profiles_info:
-            user = session.query(User).filter_by(url_name=profile['url_name']).first()
-            if user:
-                user.follow_me=True
-                user.updated_at = datetime.now()
-                self.data["updated"]+=1
+        for p in profiles_info:
+            profile = session.query(Profile).filter_by(url_name=p['url_name']).first()
+            if profile:
+                profile.follow_me=True
+                profile.updated_at = datetime.now()
+                self.followers_data["followers_updated"]+=1
             else:
-                user = User(name=profile['name'], url_name=profile['url_name'], follow_me=True, i_follow=profile["i_follow"], got_from="STARTING_BASE")
-                session.add(user)
-                self.data["created"]+=1
-            self._try_to_commit(session, user)
-
-        logger.warning(f">> FINISH to update my followers")
-        logger.warning(f">> UPDATED: {self.data['updated']} ")
-        logger.warning(f">> CREATED: {self.data['created']} ")
-        logger.warning(f">> DB ERRORS: {self.data['errors']} ")
-        session.close()
+                profile = Profile(name=p['name'], url_name=p['url_name'], follow_me=True, i_follow=p["i_follow"], got_from="STARTING_BASE")
+                session.add(profile)
+                self.followers_data["followers_created"]+=1
+            self._try_to_commit(session, profile)
         
-    def update_my_following(self, profile):
+        session.close()
+        return self.followers_data
+        
+    def update_my_following(self, url_name):
         logger.warning(f"START update following")
-        self.browser.get(f"{URL}{profile}/") 
+        self.browser.get(f"{URL}{url_name}/") 
         time.sleep(self.sleep_time+bit())
+        self.check_total_profile_numbers()
         
-        ShowProfileList(self.browser).show_following()
-        profiles_info = MyFollowersScrapper(self.browser).get_profiles_info()
+        ShowProfileList(self.browser).show_following(self.following_data["total_following"])
+        profiles_info = FollowersScrapper(self.browser, self.following_data["total_following"]).get_profiles_info()
         
-        for profile in profiles_info:
-            user = session.query(User).filter_by(url_name=profile['url_name']).first()
-            if user:
-                user.i_follow=True
-                user.updated_at = datetime.now()
-                self.data["updated"]+=1
+        for p in profiles_info:
+            profile = session.query(Profile).filter_by(url_name=p['url_name']).first()
+            if profile:
+                profile.i_follow=True
+                profile.updated_at = datetime.now()
+                self.following_data["following_updated"]+=1
             else:
-                user = User(name=profile['name'], url_name=profile['url_name'], i_follow=True, got_from="STARTING_BASE")
-                session.add(user)
-                self.data["created"]+=1
-            self._try_to_commit(session, user)
+                profile = Profile(name=p['name'], url_name=p['url_name'], i_follow=True, got_from="STARTING_BASE")
+                session.add(profile)
+                self.following_data["following_created"]+=1
+            self._try_to_commit(session, profile)
             
-        logger.warning(f">> FINISH update my following")
-        logger.warning(f">> UPDATED: {self.data['updated']} ")
-        logger.warning(f">> CREATED: {self.data['created']} ")
-        logger.warning(f">> DB ERRORS: {self.data['errors']} ")
         session.close()
+        return self.following_data
         
     def _try_to_commit(self, session, user):
         try:

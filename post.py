@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-from file_manager import FileManager
+from helpers.photo_manager import FileManager
 
 
 class TimelinePost:
@@ -31,7 +31,7 @@ class TimelinePost:
         next_button.click()
         
     def _select_photo(self):
-        self.browser.find_elements_by_tag_name("button")[-1].click()
+        self.browser.find_elements(By.TAG_NAME, "button")[-1].click()
         logger.warning("WRITING")
         time.sleep(3)
         pyautogui.write(self.file_manager.get_photo_path())

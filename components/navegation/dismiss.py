@@ -15,7 +15,7 @@ class Dismiss:
         
     def dismiss_active_notifications(self):        
         try:
-            pop_up_button = WebDriverWait(self.browser, 7+bit()).until(
+            pop_up_button = WebDriverWait(self.browser, 3+bit()).until(
                 EC.presence_of_element_located((By.XPATH, XPATH_DISMISS_ACTIVE_NOTIFICATIONS2))
             )
         except TimeoutException:
